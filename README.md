@@ -10,17 +10,9 @@ Prices come from [Scryfall](https://scryfall.com/), which ingests TCGplayer pric
 
 ## Screenshots
 
-**Collection view** — cards sorted by price, highest value at the top. Cards above your sell threshold are highlighted with a SELL badge.
+*Collection view · Dark theme · Card detail with price history — cycles every 3 seconds*
 
-![Collection view](screenshots/collection.png)
-
-**Dark theme**
-
-![Dark theme](screenshots/collection-dark.png)
-
-**Card detail** — current price, price history chart, and a direct link to search TCGplayer.
-
-![Card detail](screenshots/card-detail.png)
+![TCG Pricerator preview](screenshots/preview.gif)
 
 ---
 
