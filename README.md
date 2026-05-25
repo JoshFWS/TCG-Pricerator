@@ -42,7 +42,7 @@ Prices come from [Scryfall](https://scryfall.com/), which ingests TCGplayer pric
 In Terminal, paste this command and press Enter:
 
 ```
-pip3 install git+https://github.com/JoshFWS/TCG-Pricerator
+pip3 install https://github.com/JoshFWS/TCG-Pricerator/archive/refs/heads/main.zip
 ```
 
 This downloads and installs the app. It will take about 30 seconds.
@@ -131,7 +131,7 @@ Press `Windows + R`, type `cmd`, and press Enter. A black Command Prompt window 
 In the Command Prompt, paste this command and press Enter:
 
 ```
-pip install git+https://github.com/JoshFWS/TCG-Pricerator
+pip install https://github.com/JoshFWS/TCG-Pricerator/archive/refs/heads/main.zip
 ```
 
 This downloads and installs the app. It will take about 30 seconds.
@@ -196,12 +196,12 @@ When a new version is released, run this command (same as install) to update:
 
 **Mac:**
 ```
-pip3 install --upgrade git+https://github.com/JoshFWS/TCG-Pricerator
+pip3 install --upgrade --force-reinstall https://github.com/JoshFWS/TCG-Pricerator/archive/refs/heads/main.zip
 ```
 
 **Windows:**
 ```
-pip install --upgrade git+https://github.com/JoshFWS/TCG-Pricerator
+pip install --upgrade --force-reinstall https://github.com/JoshFWS/TCG-Pricerator/archive/refs/heads/main.zip
 ```
 
 ---
