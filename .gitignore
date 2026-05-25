@@ -35,3 +35,7 @@ ehthumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Example
+Example/
+Example/CLAUDE_andApp.md
