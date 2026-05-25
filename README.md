@@ -8,30 +8,193 @@ Prices come from [Scryfall](https://scryfall.com/), which ingests TCGplayer pric
 
 ---
 
-## Install
+## Installation
 
-Requires **Python 3.10+** ([python.org](https://www.python.org/downloads/)).
-
-```bash
-pip install git+https://github.com/YOUR_USERNAME/tcg-pricerator
-```
-
-Then run it:
-
-```bash
-pricerator serve
-```
-
-A browser window opens at `http://localhost:5000`.
+- [Mac](#mac)
+- [Windows](#windows)
 
 ---
 
-## First-run flow
+## Mac
 
-1. Click **Import CSV** and pick your Moxfield export.  
-   *(Moxfield: My Cards → Haves → Export → CSV)*
-2. Click **Refresh Prices** — first run downloads ~150 MB from Scryfall, so use Wi-Fi.
-3. Open **Settings** to set your sell thresholds (default $1.00 each) and refresh interval.
+### Step 1 — Install Python
+
+1. Open **Safari** and go to [python.org/downloads](https://www.python.org/downloads/)
+2. Click the big **Download Python 3.x.x** button
+3. Open the downloaded `.pkg` file and follow the installer (click Continue → Agree → Install)
+4. When it finishes, open the **Terminal** app (press `⌘ Space`, type `Terminal`, press Enter)
+5. Confirm Python installed by typing:
+   ```
+   python3 --version
+   ```
+   You should see something like `Python 3.13.1`. If you do, move on.
+
+### Step 2 — Install TCG Pricerator
+
+In Terminal, paste this command and press Enter:
+
+```
+pip3 install git+https://github.com/JoshFWS/TCG-Pricerator
+```
+
+This downloads and installs the app. It will take about 30 seconds.
+
+### Step 3 — Run it
+
+In Terminal, type:
+
+```
+pricerator serve
+```
+
+Your browser will open automatically to `http://localhost:5000`. That's the app — you can use it now.
+
+> To stop the app, go back to Terminal and press `Control + C`.
+
+### Step 4 — First use
+
+1. Click **Import CSV** and select your Moxfield export file  
+   *(In Moxfield: My Cards → Haves → Export → CSV)*
+2. Click **Refresh Prices** — the first refresh downloads ~150 MB of price data from Scryfall, so do it on Wi-Fi. It takes 1–2 minutes.
+3. Open **Settings** to set your sell threshold (default is $1.00) and how often to auto-refresh.
+
+### Run automatically at login (optional)
+
+If you want Pricerator to start in the background every time you log in (so it refreshes prices automatically without you having to open Terminal):
+
+1. First, find where `pricerator` is installed by running:
+   ```
+   which pricerator
+   ```
+   Copy the path it prints (e.g. `/usr/local/bin/pricerator` or `/Library/Frameworks/Python.framework/Versions/3.13/bin/pricerator`).
+
+2. Open TextEdit, go to **Format → Make Plain Text**, then paste the following. Replace the path in the third `<string>` with the one you copied in step 1:
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+   <plist version="1.0">
+   <dict>
+     <key>Label</key>             <string>com.pricerator</string>
+     <key>ProgramArguments</key>
+     <array>
+       <string>/usr/local/bin/pricerator</string>
+       <string>serve</string>
+       <string>--no-browser</string>
+     </array>
+     <key>RunAtLoad</key>         <true/>
+     <key>KeepAlive</key>         <true/>
+     <key>StandardOutPath</key>   <string>/tmp/pricerator.log</string>
+     <key>StandardErrorPath</key> <string>/tmp/pricerator.log</string>
+   </dict>
+   </plist>
+   ```
+
+3. Save the file as `com.pricerator.plist` in `~/Library/LaunchAgents/`  
+   *(Press `⌘ Shift G` in the save dialog and type `~/Library/LaunchAgents` to navigate there)*
+
+4. In Terminal, run:
+   ```
+   launchctl load ~/Library/LaunchAgents/com.pricerator.plist
+   ```
+
+5. Done. Pricerator will now start silently at every login. Open your browser and go to `http://localhost:5000` to use it.
+
+---
+
+## Windows
+
+### Step 1 — Install Python
+
+1. Open **Microsoft Edge** or Chrome and go to [python.org/downloads](https://www.python.org/downloads/)
+2. Click the big **Download Python 3.x.x** button
+3. Open the downloaded `.exe` installer
+4. **Important:** On the first screen, check the box that says **"Add python.exe to PATH"** before clicking Install Now
+
+   ![Add to PATH checkbox](https://docs.python.org/3/_images/win_installer.png)
+
+5. Click **Install Now** and wait for it to finish, then click Close
+
+### Step 2 — Open Command Prompt
+
+Press `Windows + R`, type `cmd`, and press Enter. A black Command Prompt window opens — you'll use this for the next steps.
+
+### Step 3 — Install TCG Pricerator
+
+In the Command Prompt, paste this command and press Enter:
+
+```
+pip install git+https://github.com/JoshFWS/TCG-Pricerator
+```
+
+This downloads and installs the app. It will take about 30 seconds.
+
+> **If you see an error saying `pip` is not recognized:** close Command Prompt, restart your computer, then try again.
+
+### Step 4 — Run it
+
+In Command Prompt, type:
+
+```
+pricerator serve
+```
+
+Your browser will open automatically to `http://localhost:5000`. That's the app.
+
+> To stop the app, click back on the Command Prompt window and press `Ctrl + C`.
+
+### Step 5 — First use
+
+1. Click **Import CSV** and select your Moxfield export file  
+   *(In Moxfield: My Cards → Haves → Export → CSV)*
+2. Click **Refresh Prices** — the first refresh downloads ~150 MB of price data from Scryfall, so do it on Wi-Fi. It takes 1–2 minutes.
+3. Open **Settings** to set your sell threshold (default is $1.00) and how often to auto-refresh.
+
+### Run automatically at login (optional)
+
+If you want Pricerator to start in the background every time you log in:
+
+1. First, find where `pricerator` is installed by running this in Command Prompt:
+   ```
+   where pricerator
+   ```
+   Copy the full path it prints (e.g. `C:\Users\YourName\AppData\Local\Programs\Python\Python313\Scripts\pricerator.exe`).
+
+2. Press `Windows + R`, type `taskschd.msc`, press Enter to open **Task Scheduler**
+
+3. In the right panel, click **Create Basic Task…**
+
+4. Give it a name like `TCG Pricerator` and click **Next**
+
+5. For Trigger, select **When I log on** → click **Next**
+
+6. For Action, select **Start a program** → click **Next**
+
+7. In the **Program/script** box, paste the full path you copied in step 1
+
+8. In the **Add arguments** box, type:
+   ```
+   serve --no-browser
+   ```
+
+9. Click **Next**, then **Finish**
+
+10. Done. Pricerator will now start silently at every login. Open your browser and go to `http://localhost:5000` to use it.
+
+---
+
+## Updating
+
+When a new version is released, run this command (same as install) to update:
+
+**Mac:**
+```
+pip3 install --upgrade git+https://github.com/JoshFWS/TCG-Pricerator
+```
+
+**Windows:**
+```
+pip install --upgrade git+https://github.com/JoshFWS/TCG-Pricerator
+```
 
 ---
 
@@ -45,50 +208,23 @@ A browser window opens at `http://localhost:5000`.
 - Card detail screen with 30-snapshot price history chart
 - TCGplayer search deep link from each card
 - Three themes: **Light**, **Dark**, and **Kawaii** ♡
+- Filter and sort your collection by name, set, foil type, price, or quantity
 
 ---
 
-## Run at startup (optional)
+## Troubleshooting
 
-### macOS — launchd
+**"pricerator is not recognized" / "command not found"**  
+Python's Scripts folder isn't in your PATH. On Windows, re-run the Python installer and check "Add python.exe to PATH". On Mac, try `python3 -m pricerator serve` instead.
 
-Create `~/Library/LaunchAgents/com.pricerator.plist`:
+**The app opens but prices all show —**  
+You haven't refreshed yet. Click **Refresh Prices** on the Collection page. The first run takes 1–2 minutes on Wi-Fi.
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>             <string>com.pricerator</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/local/bin/pricerator</string>
-    <string>serve</string>
-    <string>--no-browser</string>
-  </array>
-  <key>RunAtLoad</key>         <true/>
-  <key>KeepAlive</key>         <true/>
-  <key>StandardOutPath</key>   <string>/tmp/pricerator.log</string>
-  <key>StandardErrorPath</key> <string>/tmp/pricerator.log</string>
-</dict>
-</plist>
-```
+**Notifications aren't appearing on Mac**  
+Go to System Settings → Notifications → scroll down to find Python or Pricerator and make sure notifications are allowed.
 
-> Replace `/usr/local/bin/pricerator` with the output of `which pricerator`.
-
-Load it:
-```bash
-launchctl load ~/Library/LaunchAgents/com.pricerator.plist
-```
-
-### Windows — Task Scheduler
-
-1. Open **Task Scheduler** → *Create Basic Task*
-2. Trigger: **When I log on**
-3. Action: **Start a program**  
-   Program: `pricerator` (or full path from `where pricerator`)  
-   Arguments: `serve --no-browser`
-4. Finish. Pricerator will start silently at login.
+**I want to move my data to another computer**  
+Copy the `~/.pricerator/` folder (Mac) or `C:\Users\YourName\.pricerator\` (Windows) to the same location on the new machine.
 
 ---
 
@@ -96,40 +232,6 @@ launchctl load ~/Library/LaunchAgents/com.pricerator.plist
 
 All data (database + settings) is stored in `~/.pricerator/`.  
 Override with the `PRICERATOR_DATA` environment variable.
-
----
-
-## Development
-
-```bash
-git clone https://github.com/YOUR_USERNAME/tcg-pricerator
-cd tcg-pricerator
-pip install -e ".[dev]"
-pytest tests/
-```
-
----
-
-## Architecture
-
-```
-pricerator/
-  config.py       — Settings (JSON on disk, ~/.pricerator/settings.json)
-  csv_parser.py   — Moxfield CSV parser
-  db.py           — SQLite (card, price_snapshot tables)
-  price_math.py   — cents conversion, foil-aware price lookup, threshold-crossing
-  scryfall.py     — Scryfall bulk JSON downloader (streaming via ijson)
-  refresh.py      — Orchestrates download → snapshot → notify
-  notifier.py     — Desktop notifications via plyer
-  scheduler.py    — APScheduler background refresh job
-  web.py          — Flask routes
-  templates/      — Jinja2 + Bootstrap 5 + Chart.js
-  __main__.py     — CLI entry point
-```
-
-### Why Scryfall instead of TCGplayer directly?
-
-TCGplayer's pricing API requires partner approval and isn't accessible for personal projects. Scryfall is free, well-documented, and ingests TCGplayer prices daily — which is fine for a "is this worth my time to list?" tool. The bulk `default_cards` endpoint lets us update the entire collection in one download (~150 MB) instead of thousands of individual API calls.
 
 ---
 
