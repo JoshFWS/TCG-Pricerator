@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tcg-pricerator"
+version = "1.0.0"
+description = "Watch your MTG collection for cards worth selling, via Scryfall prices"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0",
+    "apscheduler>=3.10",
+    "ijson>=3.2",
+    "requests>=2.31",
+    "plyer>=2.1",
+]
+
+[project.scripts]
+pricerator = "pricerator.__main__:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pricerator*"]
+
+[tool.setuptools.package-data]
+pricerator = ["templates/*.html"]

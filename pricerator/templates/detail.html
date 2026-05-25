@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ card.name }} — TCG Pricerator{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="/" style="color:var(--pr-accent)">&larr; Back to collection</a>
+</div>
+
+<div class="row g-4">
+  {% if card.image_url %}
+  <div class="col-auto">
+    <img src="{{ card.image_url }}" alt="{{ card.name }}" style="width:200px;border-radius:0.75rem;border:1px solid var(--pr-border)">
+  </div>
+  {% endif %}
+
+  <div class="col">
+    <h1 class="h4">{{ card.name }}</h1>
+    <div class="text-muted small mb-2">
+      {{ card.set_code|upper }}
+      #{{ card.collector_number }}
+      {% if card.foil_type != 'nonfoil' %}
+        · <span style="color:var(--pr-accent)">{{ card.foil_type|capitalize }}</span>
+      {% endif %}
+      · {{ card.language }}
+      · {{ card.condition }}
+      · Qty: {{ card.quantity }}
+    </div>
+
+    {% if snapshots %}
+    {% set latest = snapshots[-1] %}
+    {% set latest_cents = latest.price_usd_cents %}
+    <div class="mb-1">
+      Current price:
+      <strong class="price" style="font-size:1.4rem;color:{% if latest_cents is not none and latest_cents >= threshold_cents %}var(--pr-sell){% else %}var(--pr-hold){% endif %}">
+        {{ cents_to_display(latest_cents) }}
+      </strong>
+    </div>
+    <div class="text-muted small mb-3">
+      Sell threshold: {{ threshold_display }}
+      {% if latest_cents is not none and latest_cents >= threshold_cents %}
+        · <span style="color:var(--pr-sell)">Above threshold <span class="kawaii-only">♡</span></span>
+      {% else %}
+        · <span style="color:var(--pr-hold)">Below threshold</span>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+      <a href="{{ tcgplayer_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+        Search on TCGplayer ↗
+      </a>
+    </div>
+  </div>
+</div>
+
+{% if snapshots %}
+<div class="card-surface mt-4" style="max-width:600px">
+  <h2 class="h6 mb-3">Price history (last {{ snapshots|length }} snapshots)</h2>
+  <canvas id="sparkline" height="120"></canvas>
+</div>
+{% else %}
+<p class="text-muted mt-4">No price snapshots yet. Refresh prices to populate.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if snapshots %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ snapshots | map(attribute='fetched_at') | list | tojson }};
+const prices = {{ snapshots | map(attribute='price_usd_cents') | list | tojson }};
+const threshold = {{ threshold_cents }};
+
+const fmtDate = ts => new Date(ts * 1000).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+
+new Chart(document.getElementById('sparkline'), {
+  type: 'line',
+  data: {
+    labels: labels.map(fmtDate),
+    datasets: [
+      {
+        label: 'Price (USD)',
+        data: prices.map(v => v === null ? null : v / 100),
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--pr-accent').trim(),
+        backgroundColor: 'transparent',
+        pointRadius: 3,
+        spanGaps: true,
+        tension: 0.3,
+      },
+      {
+        label: 'Threshold',
+        data: labels.map(() => threshold / 100),
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--pr-sell').trim(),
+        borderDash: [6, 3],
+        pointRadius: 0,
+        tension: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { ticks: { callback: v => '$' + v.toFixed(2) } }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

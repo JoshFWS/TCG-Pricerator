@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Collection — TCG Pricerator{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">
+    My Collection
+    <span class="kawaii-only">✨</span>
+  </h1>
+  <div class="d-flex gap-2">
+    <form method="post" action="/refresh">
+      <button type="submit" class="btn btn-sm btn-primary" {% if refresh_in_progress %}disabled{% endif %}>
+        {% if refresh_in_progress %}Refreshing…{% else %}Refresh Prices{% endif %}
+      </button>
+    </form>
+    <a href="/import" class="btn btn-sm btn-outline-secondary">Import CSV</a>
+  </div>
+</div>
+
+{% if last_result %}
+<div class="card-surface mb-3 small text-muted">
+  Last refresh: {{ last_result.priced }} priced · {{ last_result.unpriced }} unpriced · {{ last_result.unmatched }} unmatched
+  {% if last_result.newly_above %}
+  · <span style="color:var(--pr-sell)">{{ last_result.newly_above|length }} newly above threshold</span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if not cards %}
+<div class="card-surface text-center py-5">
+  <p class="mb-2">No cards imported yet.</p>
+  <a href="/import" class="btn btn-primary">Import a Moxfield CSV</a>
+</div>
+{% else %}
+
+{# ── Filter bar ──────────────────────────────────────────────────── #}
+<div class="mb-3 d-flex gap-2 flex-wrap">
+  <input id="filter-input" type="search" class="form-control form-control-sm w-auto flex-grow-1"
+         placeholder="Filter by name…" oninput="filterCards()">
+  <select id="filter-type" class="form-select form-select-sm w-auto" onchange="filterCards()">
+    <option value="all">All types</option>
+    <option value="sell">Sell only</option>
+    <option value="hold">Hold only</option>
+  </select>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-sm align-middle" id="card-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Set</th>
+        <th>Foil</th>
+        <th class="text-end">Price</th>
+        <th class="text-end">Qty</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in cards %}
+      <tr class="card-row {% if c.above_threshold %}row-sell{% else %}row-hold{% endif %}">
+        <td>
+          <a href="/card/{{ c.id }}" style="color:var(--pr-text);text-decoration:none">{{ c.name }}</a>
+        </td>
+        <td class="text-muted small">{{ c.set_code|upper }}</td>
+        <td class="small">
+          {% if c.foil_type == 'foil' %}
+            <span class="badge" style="background:var(--pr-accent)">Foil</span>
+          {% elif c.foil_type == 'etched' %}
+            <span class="badge" style="background:var(--pr-hold)">Etched</span>
+          {% endif %}
+        </td>
+        <td class="text-end price">
+          <strong style="color:{% if c.above_threshold %}var(--pr-sell){% else %}var(--pr-hold){% endif %}">
+            {{ c.price_display }}
+          </strong>
+        </td>
+        <td class="text-end small text-muted">{{ c.quantity }}</td>
+        <td class="text-end">
+          {% if c.above_threshold %}
+            <span class="badge badge-sell">SELL</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="text-muted small mt-2">
+  {{ cards|length }} card(s) total
+  · {{ cards|selectattr('above_threshold')|list|length }} above threshold
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterCards() {
+  const q = document.getElementById('filter-input').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  document.querySelectorAll('#card-table tbody tr').forEach(row => {
+    const name = row.cells[0]?.textContent.toLowerCase() ?? '';
+    const isSell = row.classList.contains('row-sell');
+    const nameMatch = name.includes(q);
+    const typeMatch = type === 'all' || (type === 'sell' && isSell) || (type === 'hold' && !isSell);
+    row.style.display = (nameMatch && typeMatch) ? '' : 'none';
+  });
+}
+
+// Poll for refresh completion
+{% if refresh_in_progress %}
+(function poll() {
+  fetch('/api/refresh-status').then(r => r.json()).then(d => {
+    if (!d.in_progress) { location.reload(); }
+    else { setTimeout(poll, 2000); }
+  });
+})();
+{% endif %}
+</script>
+{% endblock %}

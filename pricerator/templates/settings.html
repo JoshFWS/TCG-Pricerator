@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Settings — TCG Pricerator{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Settings</h1>
+
+<form method="post" style="max-width:480px">
+
+  <div class="card-surface mb-4">
+    <h2 class="h6 mb-3">Sell Thresholds</h2>
+    <p class="small text-muted">Cards at or above this price will be marked for selling and trigger notifications.</p>
+
+    <div class="mb-3">
+      <label class="form-label">Nonfoil threshold ($)</label>
+      <input type="number" name="threshold_nonfoil" class="form-control" step="0.01" min="0"
+             value="{{ '%.2f' | format(threshold_nonfoil) }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Foil threshold ($)</label>
+      <input type="number" name="threshold_foil" class="form-control" step="0.01" min="0"
+             value="{{ '%.2f' | format(threshold_foil) }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Etched threshold ($)</label>
+      <input type="number" name="threshold_etched" class="form-control" step="0.01" min="0"
+             value="{{ '%.2f' | format(threshold_etched) }}" required>
+    </div>
+  </div>
+
+  <div class="card-surface mb-4">
+    <h2 class="h6 mb-3">Refresh Interval</h2>
+    <select name="refresh_interval" class="form-select">
+      {% for key in refresh_intervals %}
+      <option value="{{ key }}" {% if settings.refresh_interval == key %}selected{% endif %}>
+        {% if key == 'manual' %}Manual only
+        {% elif key == '6h' %}Every 6 hours
+        {% elif key == '12h' %}Every 12 hours
+        {% elif key == '24h' %}Daily (every 24 hours)
+        {% else %}{{ key }}{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+    <div class="form-text">First refresh downloads ~150 MB from Scryfall — use Wi-Fi.</div>
+  </div>
+
+  <div class="card-surface mb-4">
+    <h2 class="h6 mb-3">Notifications</h2>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="notifications_enabled" id="notif"
+             {% if settings.notifications_enabled %}checked{% endif %}>
+      <label class="form-check-label" for="notif">
+        Desktop notification when cards newly cross threshold
+      </label>
+    </div>
+  </div>
+
+  <div class="card-surface mb-4">
+    <h2 class="h6 mb-3">Theme</h2>
+    <div class="d-flex gap-3">
+      {% for t in ['light', 'dark', 'kawaii'] %}
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="theme" id="theme-{{ t }}"
+               value="{{ t }}" {% if settings.theme == t %}checked{% endif %}>
+        <label class="form-check-label" for="theme-{{ t }}">
+          {{ t|capitalize }}{% if t == 'kawaii' %} ♡{% endif %}
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save Settings</button>
+
+</form>
+
+<hr class="my-4" style="border-color:var(--pr-border)">
+
+<div class="card-surface" style="max-width:480px;border-color:#dc3545">
+  <h2 class="h6 mb-2" style="color:#dc3545">Danger Zone</h2>
+  <p class="small text-muted">Delete all cards and price history. This cannot be undone.</p>
+  <form method="post" action="/delete-collection"
+        onsubmit="return confirm('Delete all cards and price history?')">
+    <button type="submit" class="btn btn-sm btn-outline-danger">Delete Collection</button>
+  </form>
+</div>
+{% endblock %}

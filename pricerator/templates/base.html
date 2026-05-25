@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" data-theme="{{ theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}TCG Pricerator{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+    /* ── Themes via CSS custom properties ─────────────────────────────── */
+    :root {
+      --pr-bg:      #ffffff;
+      --pr-surface: #f8f9fa;
+      --pr-text:    #212529;
+      --pr-accent:  #0d6efd;
+      --pr-sell:    #198754;
+      --pr-hold:    #6c757d;
+      --pr-border:  #dee2e6;
+    }
+    [data-theme="dark"] {
+      --pr-bg:      #1a1a2e;
+      --pr-surface: #16213e;
+      --pr-text:    #e0e0e0;
+      --pr-accent:  #4cc9f0;
+      --pr-sell:    #4ade80;
+      --pr-hold:    #9ca3af;
+      --pr-border:  #374151;
+    }
+    [data-theme="kawaii"] {
+      --pr-bg:      #fff0f6;
+      --pr-surface: #ffd6e7;
+      --pr-text:    #5c2d6e;
+      --pr-accent:  #e040fb;
+      --pr-sell:    #f06292;
+      --pr-hold:    #ba68c8;
+      --pr-border:  #f48fb1;
+    }
+
+    body { background: var(--pr-bg); color: var(--pr-text); }
+
+    .navbar { background: var(--pr-surface) !important; border-bottom: 1px solid var(--pr-border); }
+    .navbar-brand, .nav-link { color: var(--pr-text) !important; }
+    .nav-link:hover, .nav-link.active { color: var(--pr-accent) !important; }
+
+    .card-surface {
+      background: var(--pr-surface);
+      border: 1px solid var(--pr-border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+    }
+
+    .badge-sell { background-color: var(--pr-sell); }
+    .badge-hold { background-color: var(--pr-hold); }
+
+    .kawaii-only { display: none; }
+    [data-theme="kawaii"] .kawaii-only { display: inline; }
+
+    .price { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg mb-4">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">
+      TCG Pricerator
+      <span class="kawaii-only">♡</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="/">Collection</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'import_csv' %}active{% endif %}" href="/import">Import CSV</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'settings_view' %}active{% endif %}" href="/settings">Settings</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'warning' %}warning{% elif category == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

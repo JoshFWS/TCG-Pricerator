@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Import CSV — TCG Pricerator{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Import Moxfield Collection</h1>
+
+<div class="card-surface mb-4" style="max-width:520px">
+  <form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="csv_file" class="form-label">Moxfield "haves" CSV export</label>
+      <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+      <div class="form-text">
+        Export from Moxfield: <em>My Cards → Haves → Export → CSV</em>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Import</button>
+    <a href="/" class="btn btn-link">Cancel</a>
+  </form>
+</div>
+
+<div class="small text-muted">
+  <p>Importing merges the CSV into your existing collection — existing cards are updated with the new quantity.
+  To start fresh, delete the collection from Settings first.</p>
+  <p>Supported: standard cards, foil, etched, The List (GK1-57 style collector numbers).</p>
+</div>
+{% endblock %}
