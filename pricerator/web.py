@@ -77,8 +77,12 @@ def create_app() -> Flask:
                     }
                     for c in result.cards
                 ]
+                mode = request.form.get("import_mode", "merge")
+                if mode == "replace":
+                    db.delete_all_cards()
                 db.upsert_cards(cards_data)
-                flash(f"Imported {len(result.cards)} cards.", "success")
+                verb = "Replaced collection with" if mode == "replace" else "Imported"
+                flash(f"{verb} {len(result.cards)} cards.", "success")
                 return redirect(url_for("index"))
             except Exception as exc:
                 flash(f"Import failed: {exc}", "error")

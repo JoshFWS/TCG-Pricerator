@@ -36,11 +36,17 @@
 {# ── Filter bar ──────────────────────────────────────────────────── #}
 <div class="mb-3 d-flex gap-2 flex-wrap">
   <input id="filter-input" type="search" class="form-control form-control-sm w-auto flex-grow-1"
-         placeholder="Filter by name…" oninput="filterCards()">
-  <select id="filter-type" class="form-select form-select-sm w-auto" onchange="filterCards()">
-    <option value="all">All types</option>
+         placeholder="Filter by name…" oninput="applyFilters()">
+  <select id="filter-status" class="form-select form-select-sm w-auto" onchange="applyFilters()">
+    <option value="all">All</option>
     <option value="sell">Sell only</option>
     <option value="hold">Hold only</option>
+  </select>
+  <select id="filter-foil" class="form-select form-select-sm w-auto" onchange="applyFilters()">
+    <option value="all">All printings</option>
+    <option value="nonfoil">Nonfoil</option>
+    <option value="foil">Foil</option>
+    <option value="etched">Etched</option>
   </select>
 </div>
 
@@ -48,17 +54,31 @@
   <table class="table table-sm align-middle" id="card-table">
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Set</th>
+        <th class="sortable" data-col="name" style="cursor:pointer;user-select:none">
+          Name <span class="sort-icon" data-col="name">↕</span>
+        </th>
+        <th class="sortable text-muted small" data-col="set" style="cursor:pointer;user-select:none">
+          Set <span class="sort-icon" data-col="set">↕</span>
+        </th>
         <th>Foil</th>
-        <th class="text-end">Price</th>
-        <th class="text-end">Qty</th>
+        <th class="sortable text-end" data-col="price" style="cursor:pointer;user-select:none">
+          Price <span class="sort-icon" data-col="price">↕</span>
+        </th>
+        <th class="sortable text-end" data-col="qty" style="cursor:pointer;user-select:none">
+          Qty <span class="sort-icon" data-col="qty">↕</span>
+        </th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       {% for c in cards %}
-      <tr class="card-row {% if c.above_threshold %}row-sell{% else %}row-hold{% endif %}">
+      <tr class="card-row {% if c.above_threshold %}row-sell{% else %}row-hold{% endif %}"
+          data-name="{{ c.name|lower }}"
+          data-set="{{ c.set_code|lower }}"
+          data-foil="{{ c.foil_type }}"
+          data-price="{{ c.latest_price_cents if c.latest_price_cents is not none else -1 }}"
+          data-qty="{{ c.quantity }}"
+          data-sell="{{ 'sell' if c.above_threshold else 'hold' }}">
         <td>
           <a href="/card/{{ c.id }}" style="color:var(--pr-text);text-decoration:none">{{ c.name }}</a>
         </td>
@@ -87,7 +107,7 @@
   </table>
 </div>
 
-<div class="text-muted small mt-2">
+<div class="text-muted small mt-2" id="row-count">
   {{ cards|length }} card(s) total
   · {{ cards|selectattr('above_threshold')|list|length }} above threshold
 </div>
@@ -97,19 +117,85 @@
 
 {% block scripts %}
 <script>
-function filterCards() {
-  const q = document.getElementById('filter-input').value.toLowerCase();
-  const type = document.getElementById('filter-type').value;
+let sortCol = null;
+let sortAsc = true;
+
+// ── Filtering ────────────────────────────────────────────────────
+function applyFilters() {
+  const q      = document.getElementById('filter-input').value.toLowerCase().trim();
+  const status = document.getElementById('filter-status').value;
+  const foil   = document.getElementById('filter-foil').value;
+  let visible  = 0;
+
   document.querySelectorAll('#card-table tbody tr').forEach(row => {
-    const name = row.cells[0]?.textContent.toLowerCase() ?? '';
-    const isSell = row.classList.contains('row-sell');
-    const nameMatch = name.includes(q);
-    const typeMatch = type === 'all' || (type === 'sell' && isSell) || (type === 'hold' && !isSell);
-    row.style.display = (nameMatch && typeMatch) ? '' : 'none';
+    const nameMatch   = !q || row.dataset.name.includes(q);
+    const statusMatch = status === 'all' || row.dataset.sell === status;
+    const foilMatch   = foil === 'all' || row.dataset.foil === foil;
+    const show = nameMatch && statusMatch && foilMatch;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  const counter = document.getElementById('row-count');
+  if (counter) {
+    const sell = [...document.querySelectorAll('#card-table tbody tr:not([style*="none"]).row-sell')].length;
+    counter.textContent = `${visible} card(s) shown · ${sell} above threshold`;
+  }
+}
+
+// ── Sorting ──────────────────────────────────────────────────────
+function sortTable(col) {
+  const tbody = document.querySelector('#card-table tbody');
+  const rows  = [...tbody.querySelectorAll('tr')];
+
+  if (sortCol === col) {
+    sortAsc = !sortAsc;
+  } else {
+    sortCol = col;
+    sortAsc = col === 'price' ? false : true;  // price defaults to high→low
+  }
+
+  rows.sort((a, b) => {
+    let av = a.dataset[col];
+    let bv = b.dataset[col];
+    if (col === 'price' || col === 'qty') {
+      av = parseFloat(av); bv = parseFloat(bv);
+      // unpriced cards (price = -1) always sort to the bottom
+      if (col === 'price') {
+        if (av < 0 && bv < 0) return 0;
+        if (av < 0) return 1;
+        if (bv < 0) return -1;
+      }
+      return sortAsc ? av - bv : bv - av;
+    }
+    return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
+  updateSortIcons();
+}
+
+function updateSortIcons() {
+  document.querySelectorAll('.sort-icon').forEach(el => {
+    const col = el.dataset.col;
+    if (col === sortCol) {
+      el.textContent = sortAsc ? '↑' : '↓';
+      el.style.opacity = '1';
+    } else {
+      el.textContent = '↕';
+      el.style.opacity = '0.35';
+    }
   });
 }
 
-// Poll for refresh completion
+document.querySelectorAll('th.sortable').forEach(th => {
+  th.addEventListener('click', () => sortTable(th.dataset.col));
+});
+
+// Default sort: price high → low
+sortTable('price');
+
+// ── Refresh poll ─────────────────────────────────────────────────
 {% if refresh_in_progress %}
 (function poll() {
   fetch('/api/refresh-status').then(r => r.json()).then(d => {
